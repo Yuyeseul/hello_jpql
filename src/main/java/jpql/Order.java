@@ -2,8 +2,6 @@ package jpql;
 
 import jakarta.persistence.*;
 
-import java.lang.annotation.Target;
-
 @Entity
 @Table(name = "ORDERS")
 public class Order {
