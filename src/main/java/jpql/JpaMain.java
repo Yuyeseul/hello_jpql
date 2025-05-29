@@ -29,11 +29,9 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-//            "select m from Member m inner join m.team t"; // 내부 조인
-//            "select m from Member m left join m.team "; // 외부 조인
-//            "select m from Member m, Team t where m.username = t.name"; // 세타 조인
-//            "select m from Member m left join m.team t on t.name = 'teamA'"; // on절 - 조인 대상 필터링
-            String query = "select m from Member m join Team t on m.username = t.name"; // on절 - 연관관계 없는 엔티티 외부 조인
+            // 서브 쿼리 - from 절에서 사용 X
+            // exists, all, any, some, in
+            String query = "select m from Member m where exists (select t from m.team t where t.name = 'teamA')";
 
             List<Member> result = em.createQuery(query, Member.class)
                     .getResultList();
