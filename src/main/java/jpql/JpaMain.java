@@ -15,26 +15,30 @@ public class JpaMain {
         tx.begin();
 
         try {
+            Team team = new Team();
+            team.setName("teamA");
+            em.persist(team);
 
-            for (int i = 0; i < 100; i++) {
-                Member member = new Member();
-                member.setUsername("member" + i);
-                member.setAge(i);
-                em.persist(member);
-            }
+            Member member = new Member();
+            member.setUsername("memberA");
+            member.setAge(20);
+            member.setTeam(team);
+
+            em.persist(member);
 
             em.flush();
             em.clear();
 
-            List<Member> result = em.createQuery("select m from Member m order by m.age desc", Member.class)
-                    .setFirstResult(0)
-                    .setMaxResults(10)
+//            "select m from Member m inner join m.team t"; // 내부 조인
+//            "select m from Member m left join m.team "; // 외부 조인
+//            "select m from Member m, Team t where m.username = t.name"; // 세타 조인
+//            "select m from Member m left join m.team t on t.name = 'teamA'"; // on절 - 조인 대상 필터링
+            String query = "select m from Member m join Team t on m.username = t.name"; // on절 - 연관관계 없는 엔티티 외부 조인
+
+            List<Member> result = em.createQuery(query, Member.class)
                     .getResultList();
 
-            System.out.println("result.size() : " + result.size());
-            for(Member m : result) {
-                System.out.println("m = " + m);
-            }
+            System.out.println("result = " + result.size());
 
             tx.commit();
         } catch (
