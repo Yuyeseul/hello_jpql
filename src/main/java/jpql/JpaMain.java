@@ -22,6 +22,8 @@ public class JpaMain {
             Member member = new Member();
             member.setUsername("memberA");
             member.setAge(20);
+            member.setType(MemberType.ADMIN);
+
             member.setTeam(team);
 
             em.persist(member);
@@ -29,14 +31,17 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            // 서브 쿼리 - from 절에서 사용 X
-            // exists, all, any, some, in
-            String query = "select m from Member m where exists (select t from m.team t where t.name = 'teamA')";
+            String query = "select m.username, 'HELLO', true from Member m " +
+                    "where m.type = jpql.MemberType.ADMIN";
 
-            List<Member> result = em.createQuery(query, Member.class)
+            List<Object[]> result = em.createQuery(query)
                     .getResultList();
 
-            System.out.println("result = " + result.size());
+            for (Object[] objects : result) {
+                System.out.println("objects[0] = " + objects[0]);
+                System.out.println("objects[1] = " + objects[1]);
+                System.out.println("objects[2] = " + objects[2]);
+            }
 
             tx.commit();
         } catch (
