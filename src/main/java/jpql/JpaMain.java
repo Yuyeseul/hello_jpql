@@ -20,7 +20,7 @@ public class JpaMain {
             em.persist(team);
 
             Member member = new Member();
-            member.setUsername("memberA");
+            member.setUsername(null);
             member.setAge(20);
             member.setType(MemberType.ADMIN);
 
@@ -31,16 +31,30 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            String query = "select m.username, 'HELLO', true from Member m " +
-                    "where m.type = jpql.MemberType.ADMIN";
+            // 기본 case 식
+            String query = "select " +
+                    "case when m.age <= 10 then '학생요금' " +
+                    "     when m.age >= 60 then '경로요금' " +
+                    "     else '일반요금' " +
+                    "     end " +
+                    "from Member m ";
 
-            List<Object[]> result = em.createQuery(query)
+            List<String> resultList = em.createQuery(query, String.class)
                     .getResultList();
 
-            for (Object[] objects : result) {
-                System.out.println("objects[0] = " + objects[0]);
-                System.out.println("objects[1] = " + objects[1]);
-                System.out.println("objects[2] = " + objects[2]);
+            for (String result : resultList) {
+                System.out.println("result : "+result);
+            }
+
+            // coalesce -> 값이 null 이 아니면 반환, null 이면 '이름 없는 회원'
+            // nullif() -> 두 값이 같으면 null
+            String query2 = "select coalesce(m.username, '이름 없는 회원') from Member m ";
+
+            List<String> resultList2 = em.createQuery(query2, String.class)
+                    .getResultList();
+
+            for (String result2 : resultList2) {
+                System.out.println("result2 : "+result2);
             }
 
             tx.commit();
