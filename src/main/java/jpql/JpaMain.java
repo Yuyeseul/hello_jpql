@@ -15,54 +15,56 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("teamA");
+            em.persist(teamA);
 
-            Member member = new Member();
-            member.setUsername("yu");
-            member.setAge(20);
-            member.setType(MemberType.ADMIN);
-            member.setTeam(team);
+            Team teamB = new Team();
+            teamB.setName("teamB");
+            em.persist(teamB);
+
+            Member member1 = new Member();
+            member1.setUsername("member1");
+            member1.setTeam(teamA);
+            em.persist(member1);
 
             Member member2 = new Member();
-            member2.setUsername("ys");
-            member2.setTeam(team);
-
-            em.persist(member);
+            member2.setUsername("member2");
+            member2.setTeam(teamA);
             em.persist(member2);
+
+            Member member3 = new Member();
+            member3.setUsername("member3");
+            member3.setTeam(teamB);
+            em.persist(member3);
 
             em.flush();
             em.clear();
 
             // 상태 필드
-            String query = "select m.username from Member m";
-            List<String> resultList = em.createQuery(query, String.class)
+            String query = "select m from Member m join fetch m.team"; // team 프록시 X
+            String query2 = "select distinct t from Team t join fetch t.members";
+            List<Member> resultList = em.createQuery(query, Member.class)
                     .getResultList();
-            for (String result : resultList) {
-                System.out.println("result : " + result);
+            for (Member member : resultList) {
+                System.out.println("result : " + member.getUsername() + ", " + member.getTeam().getName());
             }
 
-            // 단일 값 연관 필드
-            String query2 = "select m.team from Member m";
-            List<Team> resultList2 = em.createQuery(query2, Team.class).getResultList();
-            for (Team result2 : resultList2) {
-                System.out.println("result2 : " + result2);
+            List<Team> resultList2 = em.createQuery(query2, Team.class)
+                    .getResultList();
+            for (Team team : resultList2) {
+                System.out.println("result : " + team.getName() + ", " + team.getMembers().size());
+                for (Member member : team.getMembers()) {
+                    System.out.println(" -> member = " + member);
+                }
             }
 
-            // 컬렉션 값 연관 필드
-            String query3 = "select t.members from Team t";
-            List<Member> resultList3 = em.createQuery(query3, Member.class).getResultList();
-            for (Member result3 : resultList3) {
-                System.out.println("result3 : " + result3);
-            }
+            // "select m from Member m"
+            // member1 , teamA (SQL)
+            // member2 , teamA (1차 캐시)
+            // member3 , teamB (SQL)
 
-            String query4 = "select size(t.members) from Team t";
-            Integer result4 = em.createQuery(query4, Integer.class).getSingleResult();
-            System.out.println("result4 : " + result4);
-
-            // 컬렉션 값 연관 필드 - 명시적 조인을 통해 탐색 가능
-            String query5 = "select m.username from Team t join t.members m";
+            // 회원 100명 -> 쿼리 100번 N(100번)+1(첫쿼리)
 
             tx.commit();
         } catch (
