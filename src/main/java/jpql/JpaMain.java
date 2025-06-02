@@ -41,21 +41,21 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            String query1 = "select distinct t from Team t join fetch t.members"; // 페이징 API 사용 X
-            String query2 = "select t from Team t ";
+            String query = "select m from Member m where m.id = :memberId"; // 엔티티 직접 사용 - 기본키 값
+            String query2 = "select m from Member m where m.team = :team"; // 엔티티 직접 사용 - 외래키 값
 
-            List<Team> resultList = em.createQuery(query2, Team.class)
-                    .setFirstResult(0)
-                    .setMaxResults(2)
+            Member findMember = em.createQuery(query, Member.class)
+                    .setParameter("memberId", member1.getId())
+                    .getSingleResult();
+
+            System.out.println("findMember = " + findMember);
+
+            List<Member> findMember2 = em.createQuery(query2, Member.class)
+                    .setParameter("team", teamA)
                     .getResultList();
 
-            System.out.println("resultList = " + resultList.size());
-
-            for (Team team : resultList) {
-                System.out.println("team : " + team.getName() + " | members :  " + team.getMembers().size());
-                for (Member member : team.getMembers()) {
-                    System.out.println(" -> member = " + member);
-                }
+            for (Member member : findMember2) {
+                System.out.println("member = " + member);
             }
 
             tx.commit();
