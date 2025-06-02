@@ -38,17 +38,19 @@ public class JpaMain {
             member3.setTeam(teamB);
             em.persist(member3);
 
-            em.flush();
-            em.clear();
+//            em.flush();
+//            em.clear();
 
-            // Named 쿼리 - 1. 어노테이션 2. xml 정의
-            List<Member> resultList = em.createNamedQuery("Member.findByUsername", Member.class)
-                    .setParameter("username", "member3")
-                    .getResultList();
+            // query 날리면 flush 자동 호출 -> db 에 나이 0 으로 insert
+            int resultCount = em.createQuery("update Member m set m.age = 20")
+                    .executeUpdate(); // db 에 나이 20 으로 update (db에만 반영된거임)
 
-            for (Member member : resultList) {
-                System.out.println("member = " + member);
-            }
+            System.out.println("member1.getAge() = " + member1.getAge()); // 0살
+
+            em.clear(); // em.clear() 안하면 영속성 컨텍스트에 남아있음 -> 나이 0으로 나옴
+
+            Member findMember = em.find(Member.class, member1.getId()); // em.clear 후 db에서 가져옴 -> 나이 20
+            System.out.println("member1.getAge() = " + findMember.getAge()); // 20살
 
             tx.commit();
         } catch (
